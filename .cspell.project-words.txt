@@ -440,6 +440,7 @@ setuptools
 SHDRRA
 SHFU
 SIBA
+SIRA
 sidelobes
 Simulink
 SITL
