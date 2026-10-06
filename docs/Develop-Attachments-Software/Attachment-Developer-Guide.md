@@ -27,7 +27,7 @@ A payload developer should be able to determine:
 
 - the payload bay layout and where the three ports sit on the aircraft,
 - the PCB dimensions present in the current KiCad layout and the attachment CAD assembly placement,
-- what the payload-side board looks like and how the pogo-pin / landing-pad pairing works,
+- what the Attachment Interface PCB looks like and how the pogo-pin / landing-pad pairing works,
 - the bay-by-bay electrical contract for power, CAN, PWM, and Ethernet,
 - which interface details are fixed by the board design and which require aircraft-level verification.
 
@@ -48,32 +48,30 @@ Each bay uses the same mechanical interface and contact layout; auxiliary signal
 Connecting an attachment to Quiver involves two parts: a mechanical clamp and an Attachment Interface PCB.
 
 1. **Mechanical Interface:** The aircraft uses BOM 2112 quick-release interface plates. Confirm the payload-side mating dimensions and fasteners against the hardware you will install; this guide does not specify a clamp load rating.
-2. **Pogo-Pin Contact Interface:** The Attachment Interface PCB has spring-loaded contact positions (`U1` to `U10`) and corresponding pad positions (`U11` to `U20`). The aircraft side uses pins; the payload side uses pads.
-3. **Internal Wiring:** **Do not solder or wire to the pogo pins or landing pads.** The payload-side PCB has a 12-pin locking Molex connector (**J1**) on its back face. Connect payload sensors, servos, cameras, and controllers through this connector using a wire harness.
+2. **Pogo-Pin Contact Interface:** The Attachment Interface PCB is one design used on both the aircraft and the payload. Every board has spring-loaded pogo pins in positions `U1` to `U10` and flat landing pads in positions `U11` to `U20`. The placement is mirrored, so the pogo pins on one board land on the pads of the board it mates with.
+3. **Internal Wiring:** **Do not solder or wire to the pogo pins or landing pads.** Every PCB has a 12-pin locking Molex connector (**J1**) on its back face. On the aircraft, J1 connects to the aircraft harness. On your attachment, connect sensors, servos, cameras, and controllers through J1 using a wire harness.
 
 ```
-[ AIRCRAFT AIRFRAME ]
-         │
-         ▼
-[ PETG Spacer ]                (side spacers; wiring notch on bottom spacer)
-         │
-         ▼
-[ Quick-Release Interface ]    (BOM 2112; aircraft-side CAD model)
-         │
- [ Aircraft PCB ]              (Populated with male Pogo Pins U1 to U10)
-═════════╪══════════════════════════════════════════════════════════════════ POGO-PIN / PAD CONTACT INTERFACE
- [ Payload PCB ]               (Payload-side board; populated with flat pads U11 to U20)
-         │
-         ▼
-[ Payload Mounting Plate ]     (mating hardware dimensions per current supplier drawing)
-         │
- [ Molex J1 Header ]           (12-pin locking header on rear of Payload PCB)
-         │
-         ▼
-[ Your Payload Wire Harness ]  (Mates with Molex 2045231201 plug)
-         │
-         ▼
-[ YOUR PAYLOAD HARDWARE ]
+        AIRCRAFT SIDE                                  PAYLOAD SIDE
+
+[ AIRCRAFT AIRFRAME ]                          [ YOUR PAYLOAD HARDWARE ]
+         |                                                  ^
+[ PETG Spacer ]                                [ Your Payload Wire Harness ]
+(side spacers; wiring notch                    (mates with the Molex plug)
+ on bottom spacer)                                          ^
+         |                                      [ Molex J1 Header ]
+[ Quick-Release Interface ]                     (12-pin, rear of PCB)
+(BOM 2112)                                                  |
+         |                                      [ Attachment Interface PCB ]
+[ Molex J1 Header ]                             (same board: pogo pins U1 to U10,
+(12-pin, rear of PCB)                            pads U11 to U20)
+         |                                                  |
+[ Attachment Interface PCB ]                    [ Payload Mounting Plate ]
+(same board: pogo pins U1 to U10,               (mating hardware dimensions per
+ pads U11 to U20)                                current supplier drawing)
+         |                                                  |
+         +=========== POGO-PIN / PAD CONTACT INTERFACE =====+
+                   (mirrored placement, pins land on pads)
 ```
 
 ### Key Terms
@@ -84,9 +82,9 @@ Connecting an attachment to Quiver involves two parts: a mechanical clamp and an
 | Term | What It Means |
 |---|---|
 | **Attachment Interface PCB** | The compact 23.5 x 15.8 mm board ([`QuiverAttachPCB`](../../src/pcb/attach_pcb/QuiverAttachPCB.kicad_pcb)) that sits inside the quick-release plate. |
-| **Pogo Pins (`U1` to `U10`)** | Spring-loaded pins on the **drone-side** board (part `C2826546`). |
-| **Landing Pads (`U11` to `U20`)** | Flat circular copper pads on the **payload-side** board that contact the drone pogo pins. |
-| **Molex J1** | The 12-pin locking connector (Molex part 2077601281) on the back of the payload board. This is where your harness plugs in. |
+| **Pogo Pins (`U1` to `U10`)** | Spring-loaded pins (part `C2826546`) populated on every Attachment Interface PCB, aircraft and payload alike. |
+| **Landing Pads (`U11` to `U20`)** | Flat circular copper pads on every Attachment Interface PCB, mirrored in placement so they meet the pogo pins of the mating board. |
+| **Molex J1** | The 12-pin locking connector (Molex part 2077601281) on the back of every Attachment Interface PCB. On the payload board this is where your harness plugs in. |
 | **CAN2** | All three payload bays are routed to CAN2, the 500 kbit/s radar bus shared with the two NanoRadar sensors. Attachments do not share a bus with the ESCs, GNSS, or Remote ID. The bitrate and protocols are set in the flight controller configuration (`CAN_P2`), not by the PCB. |
 | **FMU** | Flight Management Unit (the ArduPilot flight controller). Each bay has a routed FMU signal net; waveform and output configuration require aircraft-specific verification. |
 | **Switched 12V (`+12V_PL`)** | The shared 12V payload power rail (pin 10 on Molex J1), switched by SSR K2 (CPC1019N) driving MOSFET Q2, controlled via `FMU_CH4`. The F8 hold rating implies about 13W at nominal 12V; this is an estimate, not a measured system budget. |
@@ -215,32 +213,30 @@ The electrical connection is made by the **Quiver Attachment Interface PCB** ([`
   - Vertical spacing (Y axis): **8.00 mm** center-to-center.
   - KiCad board coordinates: `(100.0, 129.0)`, `(120.0, 129.0)`, `(100.0, 137.0)`, `(120.0, 137.0)`.
   - The KiCad outline defines the holes as 2.00 mm diameter; it does not specify threaded holes or fasteners.
-- **Orientation:** The board outline has chamfered corners and a silkscreen orientation notch. Confirm the payload board orientation against the aircraft-side board before mating.
+- **Orientation:** The board outline has chamfered corners and a silkscreen orientation notch. Confirm the board orientation against the mating board before mating.
 
 ![Figure 8: PCB Rear View Showing J1 Connector](./Images/fig09_pcb_back_j1.png)
-*Figure 8: Rear face of the payload board showing the 12-pin Molex J1 connector.*
+*Figure 8: Rear face of the Attachment Interface PCB showing the 12-pin Molex J1 connector. The same board is used on the aircraft and the payload.*
 
 ### 2.5 How the Boards Mate vs. How You Wire
 
 ![Figure 9: Mechanical and Electrical Mating Cross-Section](./Images/fig10_mating_section.png)
-*Figure 9: Cross-section showing drone pogo pins contacting payload pads, and your harness connecting to Molex J1.*
+*Figure 9: Cross-section showing the pogo pins of one board contacting the pads of the mating board, and the harness connecting to Molex J1.*
 
-A single board design serves both sides of the interface by populating different parts:
+One board design serves both sides of the interface, and every board is populated the same way:
 
-| Drone-Side Board | Payload-Side Board |
-|---|---|
-| Populated with 10 male spring-loaded pogo pins (`U1` to `U10`, part `C2826546`). | Populated with 10 flat circular copper landing pads (`U11` to `U20`, 2.0 mm diameter). |
-| The pogo pins face outward toward the docking bay. | The landing pads face inward toward the aircraft. |
-| Rear Molex J1 connects to the aircraft internal avionics harness. | Rear Molex J1 connects to your payload internal electronics. |
+- 10 spring-loaded pogo pins (`U1` to `U10`, part `C2826546`),
+- 10 flat circular copper landing pads (`U11` to `U20`, 2.0 mm diameter),
+- a rear 12-pin Molex J1 connector, which connects to the aircraft harness on the aircraft board and to your payload electronics on the payload board.
 
-The PCB design is the same for both sides; the payload-side board is mirrored in placement but not in fabrication.
+Placement is mirrored: in the V1.4 KiCad layout the pad positions `U11` to `U20` sit opposite the pogo positions `U1` to `U10` about the board center line, and each pad carries the same net as its opposite pogo pin. Two boards face to face therefore connect signal to signal.
 
 | Physical PCB: Mating Face | Physical PCB: Rear Connector Face |
 |:---:|:---:|
 | ![Physical Hardware Mating Face](../../task-grant-bounty/pt3/electronics/0003-Attachment-Interface-PCB/2026-Update/images/QuiverAttachPCB_new1.jpg) | ![Physical Hardware Rear Face](../../task-grant-bounty/pt3/electronics/0003-Attachment-Interface-PCB/2026-Update/images/QuiverAttachPCB_new2.jpg) |
 
 > [!WARNING]
-> **Wiring rule:** The aircraft-side board uses spring-loaded pins U1–U10; the payload-side board uses copper pads U11–U20. Connect payload wiring through Molex J1, not directly to the contacts.
+> **Wiring rule:** Every board carries pogo pins U1 to U10 and pads U11 to U20. Connect payload wiring through Molex J1, not directly to the contacts.
 
 ### 2.6 Open Mechanical Items
 
@@ -305,7 +301,7 @@ The current Main PCB layout defines these pins on J31, J29, and J30. Signal name
 
 ### 3.3 Payload Harness Connector: Molex J1 Pinout
 
-The **12-pin Molex connector (J1)** on the back of your payload board is where your attachment wiring connects:
+The **12-pin Molex connector (J1)** on the back of the payload-side board is where your attachment wiring connects:
 - **Board Header (J1):** Molex part [`207760-1281`](https://www.molex.com/en-us/products/part-detail/2077601281) (Micro-Lock Plus, 12-circuit, dual-row, 1.25 mm pitch, vertical surface-mount locking header; rated 2.0 A per contact and 50 V maximum by Molex).
 - **Mating Cable Plug:** Molex housing `204523-1201`; the [harness manufacturing guide](../../task-grant-bounty/pt3/electronics/0009-Harnessing-Guide/Harnessing-Guide.md) lists terminal `2145291000` and pre-crimped lead `79758-1149`. Check the ratings for the selected terminal and wire as well as the header: the lowest-rated part sets the limit.
 
@@ -327,13 +323,13 @@ The **12-pin Molex connector (J1)** on the back of your payload board is where y
 *(Molex J1 signal and pin mapping.)*
 
 > [!NOTE]
-> **Doubled pins are doubled on J1 only.** The mating plane has a single contact each for `12VSW` (`U2`) and `GND` (`U4`), so the paralleled J1 pins (2 and 4, 6 and 8) do not add current capacity across the pogo interface. This guide does not specify the pogo-pin current rating; check the `C2826546` datasheet before loading those contacts. The J1 50 V rating is below full battery voltage; the HV tap is on Main PCB J26, not on this interface.
+> **Doubled pins are doubled on J1 only.** Each board has one pogo pin and one pad for `12VSW` (`U2`, `U12`) and for `GND` (`U4`, `U14`), so the paralleled J1 pins (2 and 4, 6 and 8) do not add current capacity across the interface. Whether both the pin and the pad of a mirrored pair conduct when two boards mate has not been confirmed on assembled hardware, so do not count on it for current. This guide does not specify the pogo-pin current rating; check the `C2826546` datasheet before loading those contacts. The J1 50 V rating is below full battery voltage; the HV tap is on Main PCB J26, not on this interface.
 
 ### 3.4 Pogo Pin and Landing Pad Map
 
-When you check electrical continuity with a multimeter, here is how the 10 contact pads across the mating plane match up:
+When you check electrical continuity with a multimeter, here is how the pogo pins and their mirrored pads on a board line up. Every board has the same layout, and each pogo pin lands on the pad of the same signal on the mating board. Source: `QuiverAttachPCB.kicad_pcb` (V1.4), where `U1` to `U10` are the pogo footprints and `U11` to `U20` the pad-only footprints.
 
-| Signal Name | Drone Pogo Pin (`U1` to `U10`) | Payload Landing Pad (`U11` to `U20`) | Mated Signal Function |
+| Signal Name | Pogo Pin (`U1` to `U10`) | Mirrored Landing Pad (`U11` to `U20`) | Mated Signal Function |
 |---|:---:|:---:|---|
 | `ETH_RX+` | `U1` | `U11` | Ethernet RX+ differential line |
 | `12VSW` | `U2` | `U12` | Switched DC motor rail (Bottom bay only; NC on sides) |
@@ -427,9 +423,9 @@ The approximate 13W estimate is derived from the F8 hold-current rating, not fro
 
 | Designator | Component Part Number | Location | What It Does |
 |---|---|---|---|
-| **J1** | Molex `2077601281` | Payload PCB (rear) | 12-pin locking header. Mates with cable housing Molex `2045231201`. |
-| **U1 to U10** | Part `C2826546` | Drone PCB (front) | 10 male spring-loaded pogo pins. Mates with U11 to U20. |
-| **U11 to U20** | 2.0 mm Copper Pads | Payload PCB (front) | 10 flat circular landing pads. Mates with U1 to U10. |
+| **J1** | Molex `2077601281` | Every Attachment Interface PCB (rear) | 12-pin locking header. Mates with cable housing Molex `2045231201`. |
+| **U1 to U10** | Part `C2826546` | Every Attachment Interface PCB (front) | 10 spring-loaded pogo pins. Land on the pads of the mating board. |
+| **U11 to U20** | 2.0 mm Copper Pads | Every Attachment Interface PCB (front) | 10 flat circular landing pads. Meet the pogo pins of the mating board. |
 | **J31** | Phoenix PTSM `1814951` | Main PCB | Bottom bay avionics header (6-pin SMT). |
 | **J29** | Phoenix PTSM `1778735` | Main PCB | Side 1 (Right) bay avionics header (6-pin SMT). |
 | **J30** | Phoenix PTSM `1778735` | Main PCB | Side 2 (Left) bay avionics header (6-pin SMT). |
