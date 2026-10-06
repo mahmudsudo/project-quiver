@@ -2,8 +2,6 @@
 
 If you are designing or building a hardware attachment for Quiver, this guide explains what an attachment is, how it mounts to the airframe, and what the electrical interface provides at each of the three bays.
 
-> [!NOTE]
-> **Scope of this revision (milestone 1):** chapters 1 to 3 only, covering what a Quiver attachment is, the mechanical interface, and the electrical contract. Power budgeting, control and data paths, flight controller integration, software handoff, validation, and build notes follow in milestone 2.
 
 The interface contract itself is the payload-systems [Interface Control Document (ICD)](https://github.com/Arrow-air/payload-systems/blob/main/interface/ICD.md); this guide links it and adds the pin tables and power rules a builder needs. Software is covered in the [SDK Developer Guide](./Quiver-SDK-Developer-Guide.md). Flight-controller parameters and the network layout come from the [Initial Configuration Guide](https://github.com/Arrow-air/project-quiver/blob/errrks-init-config-1/docs/Operations/Initial-Configuration-Guide.md); relay labels come from the [Pilot Handbook](../Operations/Pilot-Handbook.md) §2.8.5.
 
